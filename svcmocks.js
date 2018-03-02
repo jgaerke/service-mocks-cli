@@ -376,7 +376,7 @@ const showAndPromptUntilStateSelected = (states, skip = 0, limit = 10) => {
   })
 }
 
-program.version(readData('./package.json').version)
+program.version('0.0.5')
 
 program
   .command('config <api-key>')
