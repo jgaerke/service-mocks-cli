@@ -34,17 +34,34 @@ const error = (err) => {
   log(chalk.white.bgRed.bold('Error:'), err)
 }
 
-const responseError = (message) => {
-  return (err) => {
-    error(message)
-    if (err) {
-      if (err.response) {
-        error(prettyPrint({
-          status: err.response.status,
-          details: err.response.data
-        }))
+const unpackAndLogError = (err) => {
+  console.log('here', err)
+  if (_.isNil(err)) {
+    error('Unknown error occurred')
+  }
+  if (_.isString(err)) {
+    error(err)
+  }
+  if (_.isObject(err)) {
+    const output = {}
+    if (!_.isNil(err.message)) {
+      output.message = err.message
+    }
+    if (_.isObject(err.details)) {
+      const {details} = err
+      const {response = {}} = details
+      const {status, data} = response
+      if (status) {
+        output.status = status
+      }
+      if (data) {
+        output.details = data
       }
     }
+    if (_.isEmpty(output)) {
+      return error(prettyPrint(data))
+    }
+    error(output)
   }
 }
 
@@ -156,8 +173,15 @@ const list = (collection, skip = 0, limit = 10, verbose = false, persist = false
     if (persist) {
       saveData(collection, data)
     }
-    return data
-  }).catch(responseError(`Error listing ${collection}`))
+    return _.assign({}, response.data, {
+      [collection]: data
+    })
+  }).catch((err) => {
+    return Promise.reject({
+      message: `Error listing ${collection}`,
+      error: err
+    })
+  })
 }
 
 const get = (collection, id, verbose = false, persist = false) => {
@@ -173,7 +197,12 @@ const get = (collection, id, verbose = false, persist = false) => {
       saveData(`mock-${id}`, data)
     }
     return data
-  }).catch(responseError(`Error getting ${id} from ${collection}`))
+  }).catch((err) => {
+    return Promise.reject({
+      message: `Error getting ${id} from ${collection}`,
+      error: err
+    })
+  })
 }
 
 const create = (collection, file, verbose = false) => {
@@ -183,7 +212,12 @@ const create = (collection, file, verbose = false) => {
   const data = readData(file)
   return api.create(collection, data).then((response) => {
     return formatToVerbosityLevel(collection, response.data || {}, verbose)
-  }).catch(responseError(`Error creating ${collection} item`))
+  }).catch((err) => {
+    return Promise.reject({
+      message: `Error creating ${collection} item`,
+      error: err
+    })
+  })
 }
 
 const update = (collection, file, verbose = false) => {
@@ -198,22 +232,37 @@ const update = (collection, file, verbose = false) => {
   delete data.id
   return api.update(collection, id, data).then((response) => {
     return formatToVerbosityLevel(collection, response.data || {}, verbose)
-  }).catch(responseError(`Error updating ${collection} item`))
+  }).catch((err) => {
+    return Promise.reject({
+      message: `Error updating ${collection} item`,
+      error: err
+    })
+  })
 }
 
-const del = (collection, id, verbose = false) => {
+const del = (collection, id) => {
   if (!isValidCollection(collection)) {
     return Promise.reject(`${collection} is not a valid collection`)
   }
   return api.delete(collection, id).then(() => {
     return {success: true}
-  }).catch(error)
+  }).catch((err) => {
+    return Promise.reject({
+      message: `Error deleting ${collection} item`,
+      error: err
+    })
+  })
 }
 
 const getValidStates = (id) => {
   return api.getValidStates(id).then((response) => {
     return response.data
-  }).catch(responseError(`Error getting valid mock states`))
+  }).catch((err) => {
+    return Promise.reject({
+      message: 'Error getting valid states',
+      error: err
+    })
+  })
 }
 
 const setState = (mockId, resource, instance, state, verbose = false) => {
@@ -225,7 +274,12 @@ const setState = (mockId, resource, instance, state, verbose = false) => {
 
   return api.setState(mockId, updatedState).then((response) => {
     return formatToVerbosityLevel('mocks', response.data || {}, verbose)
-  }).catch(responseError(`Error updating mock state`))
+  }).catch((err) => {
+    return Promise.reject({
+      message: 'Error setting state',
+      error: err
+    })
+  })
 }
 
 const showOptions = (options = []) => {
@@ -356,7 +410,6 @@ const showAndPromptUntilStateSelected = (states, skip = 0, limit = 10) => {
     stateOptions = stateOptions.slice(skip, limit).concat('Next...')
     length = stateOptions.length
   }
-  console.log('stateOptions', stateOptions)
   log(`\nmock: ${selectedMock.name} \nresource: ${selectedResource.name} \ninstance: ${selectedInstance}\n`)
   log('Select from these states:')
   showOptions(stateOptions)
@@ -376,7 +429,7 @@ const showAndPromptUntilStateSelected = (states, skip = 0, limit = 10) => {
   })
 }
 
-program.version('0.0.5')
+program.version('0.0.6')
 
 program
   .command('config <api-key>')
@@ -396,7 +449,7 @@ program
     list(collection, options.skip, options.limit, options.verbose, options.persist).then((data) => {
       success(data)
     }).catch((err) => {
-      error(err)
+      unpackAndLogError(err)
     })
   })
 
@@ -409,7 +462,7 @@ program
     get(collection, id, options.verbose, options.persist).then((data) => {
       success(data)
     }).catch((err) => {
-      error(err)
+      unpackAndLogError(err)
     })
   })
 
@@ -421,7 +474,7 @@ program
     create(collection, file, options.verbose).then((data) => {
       success(data)
     }).catch((err) => {
-      error(err)
+      unpackAndLogError(err)
     })
   })
 
@@ -433,7 +486,7 @@ program
     update(collection, file, options.verbose).then((data) => {
       success(data)
     }).catch((err) => {
-      error(err)
+      unpackAndLogError(err)
     })
   })
 
@@ -445,7 +498,7 @@ program
     del(collection, id, options.verbose).then((data) => {
       success(data)
     }).catch((err) => {
-      error(err)
+      unpackAndLogError(err)
     })
   })
 
@@ -463,6 +516,8 @@ program
     }
     setState(mockId, resource, instance, state, options.verbose).then((data) => {
       success(data)
+    }).catch((err) => {
+      unpackAndLogError(err)
     })
   })
 
