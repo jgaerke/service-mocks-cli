@@ -112,7 +112,7 @@ const apiUrlBase = 'https://api.servicemocks.com'
 
 const api = {
   list: (collection, skip, limit) => {
-    return axios.get(`${apiUrlBase}/${collection}?skip=${skip}&limit=${limit}`, prepareHeaders())
+    return axios.get(`${apiUrlBase}/${collection}?skip=${skip}&limit=${limit}&calcTotalCount=true`, prepareHeaders())
   },
   create: (collection, data) => {
     return axios.post(`${apiUrlBase}/${collection}`, data, prepareHeaders())
@@ -429,7 +429,7 @@ const showAndPromptUntilStateSelected = (states, skip = 0, limit = 10) => {
   })
 }
 
-program.version('0.0.6')
+program.version('0.0.7')
 
 program
   .command('config <api-key>')
