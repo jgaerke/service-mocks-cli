@@ -117,6 +117,9 @@ const api = {
   }
 }
 
+const readData = (file) => {
+  return JSON.parse(fs.readFileSync(file).tostring())
+}
 const saveData = (file, data) => {
   fs.writeFileSync(`${file}.json`, JSON.stringify(data, null, 2))
 }
@@ -177,7 +180,7 @@ const create = (collection, file, verbose = false) => {
   if (!isValidCollection(collection)) {
     return Promise.reject(`${collection} is not a valid collection`)
   }
-  const data = readFile(file)
+  const data = readData(file)
   return api.create(collection, data).then((response) => {
     return formatToVerbosityLevel(collection, response.data || {}, verbose)
   }).catch(responseError(`Error creating ${collection} item`))
@@ -187,7 +190,7 @@ const update = (collection, file, verbose = false) => {
   if (!isValidCollection(collection)) {
     return Promise.reject(`${collection} is not a valid collection`)
   }
-  const data = readFile(file)
+  const data = readData(file)
   const id = data.id
   if (!id) {
     return error('id required to update resource')
