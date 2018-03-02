@@ -1,0 +1,28 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+# Idea directories
+.idea
+
+coverage
+
+.nyc_output
+
+# vscode
+.vscode
+
+
+# Idea directories
+.idea
+.vscode
+
+.env
+
+.nyc_output
+
+build.properties.json
+npm-debug.log
