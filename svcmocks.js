@@ -118,7 +118,7 @@ const api = {
 }
 
 const readData = (file) => {
-  return JSON.parse(fs.readFileSync(file).tostring())
+  return JSON.parse(fs.readFileSync(file).toString())
 }
 const saveData = (file, data) => {
   fs.writeFileSync(`${file}.json`, JSON.stringify(data, null, 2))
@@ -376,7 +376,7 @@ const showAndPromptUntilStateSelected = (states, skip = 0, limit = 10) => {
   })
 }
 
-program.version('0.0.1')
+program.version(readData('./package.json').version)
 
 program
   .command('config <api-key>')
@@ -469,8 +469,3 @@ program
 
 program.parse(process.argv)
 
-// list('mocks', 0, 10, false).then((data) => {
-//   log('results', data)
-// }).catch((err) => {
-//   error(err)
-// })
