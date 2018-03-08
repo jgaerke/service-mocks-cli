@@ -4,7 +4,7 @@
   "description": "Command line interface to orchestrate api.servicemocks.com",
   "main": "index.js",
   "preferGlobal": true,
-  "bin": "./svcmocks.js",
+  "bin": "./bin/SvcMocks.js",
   "scripts": {
     "test": "test"
   },
@@ -26,10 +26,12 @@
   "homepage": "https://github.com/jgaerke/service-mocks-cli#readme",
   "dependencies": {
     "axios": "0.18.0",
-    "chalk": "2.3.1",
+    "cli-table": "0.3.1",
+    "colors": "1.1.2",
     "commander": "2.14.1",
     "inquirer": "5.1.0",
-    "lodash": "4.17.5"
+    "lodash": "4.17.5",
+    "opn": "5.2.0"
   },
   "devDependencies": {
     "babel-core": "6.25.0",
