@@ -8,7 +8,7 @@ class MockManageContractCommand {
   register (program) {
     program
       .command('mock:manage:contract [name] [version]')
-      .description('Manage mock in console')
+      .description('Manage mock in web console')
       .action((mock, version) => {
         this.mockService.manageMockContract(mock, version).catch((err) => {
           this.errorService.handle(err)
