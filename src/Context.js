@@ -2,6 +2,7 @@ const fs = require('fs')
 const util = require('util')
 const inquirer = require('inquirer')
 const program = require('commander')
+const updateNotifier = require('update-notifier')
 const axios = require('axios')
 const opn = require('opn')
 const packageJson = require('../package.json')
@@ -81,6 +82,7 @@ class Context {
   }
 
   static initialize () {
+    updateNotifier({pkg: packageJson}).notify();
     program
       .version(packageJson.version)
       .usage('<command> [options]')

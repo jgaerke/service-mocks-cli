@@ -1,6 +1,7 @@
 const API_URL = 'https://api.servicemocks.com'
 const CONSOLE_URL = 'https://console.servicemocks.com'
 const WorkDirUtil = require('../util/WorkDirUtil')
+const Table = require('cli-table')
 
 class ConfigurationService {
   constructor (fs, json) {
@@ -20,6 +21,17 @@ class ConfigurationService {
   set (config) {
     config = Object.assign({}, this.get(), withNoInvalidData(config))
     this.fs.writeFileSync(this.configPath, this.json.stringify(config, null, 2) + '\n')
+  }
+
+  list () {
+    const table = new Table({
+      head: ['Key'.green, 'Value'.green]
+    })
+    const config = this.get()
+    Object.keys(config).forEach((key) => {
+      table.push([key, config[key]])
+    })
+    return table.toString()
   }
 
   isApiConfigured () {
