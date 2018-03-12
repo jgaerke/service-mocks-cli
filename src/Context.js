@@ -88,8 +88,7 @@ class Context {
 
   static initialize () {
     const notifier = updateNotifier({
-      pkg: packageJson,
-      updateCheckInterval: 0
+      pkg: packageJson
     })
     notifier.notify()
     program
