@@ -87,7 +87,11 @@ class Context {
   }
 
   static initialize () {
-    updateNotifier({pkg: packageJson}).notify();
+    const notifier = updateNotifier({
+      pkg: packageJson,
+      updateCheckInterval: 0
+    })
+    notifier.notify()
     program
       .version(packageJson.version)
       .usage('<command> [options]')
