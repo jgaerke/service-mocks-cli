@@ -13,6 +13,22 @@ class MockService {
     this.selectedInstance = null
   }
 
+  getMockList () {
+    if(!this.configurationService.isApiConfigured()) {
+      return Promise.reject({message: `Please run 'config --api-key <api-key>' command and try again`})
+    }
+    return getMocks(this, 0, 100)
+      .then((response) => {
+        const table = new Table({
+          head: ['Mock'.green, 'Version'.green, 'Account'.green, 'URL'.green]
+        })
+        response.mocks.forEach((mock) => {
+          table.push([mock.name, mock.version, mock.account, mock.url])
+        })
+        return table.toString()
+      })
+  }
+
   getMockState (mock, version) {
     if(!this.configurationService.isApiConfigured()) {
       return Promise.reject({message: `Please run 'config --api-key <api-key>' command and try again`})

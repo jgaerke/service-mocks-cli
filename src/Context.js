@@ -19,6 +19,7 @@ const BrowserService = require('./service/BrowserService')
 const MockService = require('./service/MockService')
 
 const ConfigCommand = require('./command/ConfigCommand')
+const MockListCommand = require('./command/MockListCommand')
 const MockStateGetCommand = require('./command/MockStateGetCommand')
 const MockManageDefinitionCommand = require('./command/MockManageDefinitionCommand')
 const MockManageContractCommand = require('./command/MockManageContractCommand')
@@ -65,6 +66,10 @@ class Context {
     return asSingleton('LoginCommand', new LoginCommand(Context.getBrowserService()))
   }
 
+  static getMockListCommand () {
+    return asSingleton('MockListCommand', new MockListCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  }
+
   static getMockManageDefinitionCommand () {
     return asSingleton('MockManageDefinitionCommand', new MockManageDefinitionCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
   }
@@ -88,6 +93,7 @@ class Context {
       .usage('<command> [options]')
       .option('-d, --debug', 'show debug info')
     Context.getConfigCommand().register(program)
+    Context.getMockListCommand().register(program)
     Context.getMockManageDefinitionCommand().register(program)
     Context.getMockManageContractCommand().register(program)
     Context.getLoginCommand().register(program)
