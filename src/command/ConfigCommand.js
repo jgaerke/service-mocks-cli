@@ -15,6 +15,9 @@ class ConfigCommand {
       .option('-c, --clear [key]', 'Clear config value(s)')
       .action((options) => {
         const {list, consoleUrl, apiUrl, apiKey, clear} = options
+        if(!list && !consoleUrl && !apiUrl && !apiUrl && !clear) {
+          program.help()
+        }
         if (list) {
           this.loggingService.info(this.configurationService.list())
           return

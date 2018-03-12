@@ -1,6 +1,6 @@
 {
   "name": "svcmocks",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "Command line interface to orchestrate api.servicemocks.com",
   "main": "index.js",
   "preferGlobal": true,
