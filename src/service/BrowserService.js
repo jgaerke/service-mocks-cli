@@ -4,7 +4,7 @@ class BrowserService {
   }
 
   open(url) {
-    this.opn(url)
+    this.opn(url, {wait:false})
   }
 }
 

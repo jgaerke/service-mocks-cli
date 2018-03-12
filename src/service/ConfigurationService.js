@@ -1,8 +1,11 @@
+const API_URL = 'https://api.servicemocks.com'
+const CONSOLE_URL = 'https://console.servicemocks.com'
+const WorkDirUtil = require('../util/WorkDirUtil')
 
 class ConfigurationService {
-  constructor (fs, configPath, json) {
+  constructor (fs, json) {
     this.fs = fs
-    this.configPath = configPath
+    this.configPath = WorkDirUtil.ensureAndGet() + 'config.json'
     this.json = json
   }
 
@@ -10,16 +13,41 @@ class ConfigurationService {
     if (!this.fs.existsSync(this.configPath)) {
       return {}
     }
-    return this.json.parse(this.fs.readFileSync(this.configPath).toString())
+    const config = this.json.parse(this.fs.readFileSync(this.configPath).toString())
+    return withDefaults(config)
   }
 
   set (config) {
+    config = Object.assign({}, this.get(), withNoInvalidData(config))
     this.fs.writeFileSync(this.configPath, this.json.stringify(config, null, 2) + '\n')
   }
 
-  isApiKeyConfigured () {
-    return !!this.read().apiKey
+  isApiConfigured () {
+    const config = this.get()
+    return !!config.apiUrl && !!config.apiKey
   }
+
+  isConsoleConfigured () {
+    const config = this.get()
+    return !!config.consoleUrl
+  }
+}
+
+const withDefaults = (data = {}) => {
+  return Object.assign({}, {apiUrl: API_URL, consoleUrl: CONSOLE_URL}, data)
+}
+
+const withNoInvalidData = (data = {}) => {
+  if (data.apiKey && data.apiUrl === '') {
+    delete data.apiUrl
+  }
+  if (data.apiKey && data.apiKey === '') {
+    delete data.apiKey
+  }
+  if (data.consoleUrl && data.consoleUrl === '') {
+    delete data.consoleUrl
+  }
+  return Object.assign({}, {apiUrl: API_URL, consoleUrl: CONSOLE_URL}, data)
 }
 
 module.exports = ConfigurationService

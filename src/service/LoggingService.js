@@ -1,14 +1,15 @@
 const colors = require('colors')
 colors.mode = process.stdout.isTTY ? colors.mode : 'none'
+const WorkDirUtl = require('../util/WorkDirUtil')
 
 class LoggingService {
-  constructor (console, util, json, debugMessages, isDebug, logPath) {
+  constructor (console, util, json, debugMessages, isDebug) {
     this.console = console
     this.util = util
     this.json = json
     this.debugMessages = debugMessages
     this.isDebug = isDebug
-    this.logPath = logPath
+    this.logPath = WorkDirUtl.ensureAndGet() + 'svcmocks.log'
   }
 
   debug (log) {

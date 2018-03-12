@@ -1,7 +1,10 @@
 class MockApi {
-  constructor (axios, apiUrlBase, progressService, configurationService) {
+  constructor (axios, progressService, configurationService) {
     this.axios = axios
-    this.apiUrlBase = apiUrlBase
+    const config = configurationService.get()
+    this.apiUrl = config.apiUrl
+    this.apiKey = config.apiKey
+    this.authToken = config.authToken
     this.progressService = progressService
     this.configurationService = configurationService
   }
@@ -9,35 +12,35 @@ class MockApi {
   list (skip, limit) {
     return withProgress(
       this,
-      this.axios.get(`${this.apiUrlBase}/mocks?skip=${skip}&limit=${limit}&calcTotalCount=true`, prepareHeaders(this))
+      this.axios.get(`${this.apiUrl}/mocks?skip=${skip}&limit=${limit}&calcTotalCount=true`, prepareHeaders(this))
     )
   }
 
   get (id) {
     return withProgress(
       this,
-      this.axios.get(`${this.apiUrlBase}/mocks/${id}`, prepareHeaders(this))
+      this.axios.get(`${this.apiUrl}/mocks/${id}`, prepareHeaders(this))
     )
   }
 
-  getByName (name) {
+  getByNameAndVersion (name, version) {
     return withProgress(
       this,
-      this.axios.get(`${this.apiUrlBase}/mocks?name=${name}`, prepareHeaders(this))
+      this.axios.get(`${this.apiUrl}/mocks?name=${name}&version=${version}`, prepareHeaders(this))
     )
   }
 
   getState (mockId) {
     return withProgress(
       this,
-      this.axios.get(`${this.apiUrlBase}/mocks/${mockId}/states`, prepareHeaders(this))
+      this.axios.get(`${this.apiUrl}/mocks/${mockId}/states`, prepareHeaders(this))
     )
   }
 
   setState (mockId, state) {
     return withProgress(
       this,
-      this.axios.patch(`${this.apiUrlBase}/mocks/${mockId}/states`, state, prepareHeaders(this))
+      this.axios.patch(`${this.apiUrl}/mocks/${mockId}/states`, state, prepareHeaders(this))
     )
   }
 }
@@ -47,7 +50,7 @@ module.exports = MockApi
 const prepareHeaders = (thisArg) => {
   return {
     headers: {
-      'x-api-key': thisArg.configurationService.get().apiKey,
+      'x-api-key': thisArg.apiKey,
       'x-service-mocks-cli': 'true'
     }
   }

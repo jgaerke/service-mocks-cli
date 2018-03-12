@@ -1,4 +1,4 @@
-class SetStateCommand {
+class MockStateSetCommand {
   constructor (mockService, loggingService, errorService) {
     this.mockService = mockService
     this.loggingService = loggingService
@@ -7,11 +7,10 @@ class SetStateCommand {
 
   register (program) {
     program
-      .command('set-state [mock] [resource] [instance] [state]')
+      .command('mock:state:set [mock] [version] [resource] [instance] [state]')
       .description('Set mock state')
-      .option('-i, --interactive', 'Interactively list mocks, resources, and instances to choose state from')
-      .action((mock, resource, instance, state, options) => {
-        this.mockService.setMockState(mock, resource, instance, state, options.interactive).then((result) => {
+      .action((mock, version, resource, instance, state) => {
+        this.mockService.setMockState(mock, version, resource, instance, state).then(() => {
           this.loggingService.success('Successfully updated mock state!')
         }).catch((err) => {
           this.errorService.handle(err)
@@ -20,7 +19,7 @@ class SetStateCommand {
   }
 }
 
-module.exports = SetStateCommand
+module.exports = MockStateSetCommand
 
 
 

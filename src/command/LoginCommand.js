@@ -4,12 +4,12 @@ class LoginCommand {
   }
 
   register (program) {
-    program
-      .command('login')
-      .description('Login using account credentials')
-      .action(() => {
-        this.browserService.open('https://servicemocks.com')
-      })
+    // program
+    //   .command('login')
+    //   .description('Login using account credentials')
+    //   .action(() => {
+    //     this.browserService.open('https://servicemocks.com')
+    //   })
   }
 }
 

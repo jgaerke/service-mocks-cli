@@ -6,12 +6,8 @@ const axios = require('axios')
 const opn = require('opn')
 const packageJson = require('../package.json')
 
-const API_URL_BASE = 'https://api.servicemocks.com'
 const DEBUG_MESSAGES = []
 const DEBUG_MODE = process.argv.indexOf('--debug') >= 0
-const CONFIG_PATH = process.env.HOME + '/.svcmocks/config.json'
-const LOG_PATH = process.env.HOME + '/.svcmocks/.svcmocks-log'
-
 
 const ConfigurationService = require('./service/ConfigurationService')
 const LoggingService = require('./service/LoggingService')
@@ -22,21 +18,22 @@ const BrowserService = require('./service/BrowserService')
 const MockService = require('./service/MockService')
 
 const ConfigCommand = require('./command/ConfigCommand')
-const GetStateCommand = require('./command/GetStateCommand')
-const ManageCommand = require('./command/ManageCommand')
+const MockStateGetCommand = require('./command/MockStateGetCommand')
+const MockManageDefinitionCommand = require('./command/MockManageDefinitionCommand')
+const MockManageContractCommand = require('./command/MockManageContractCommand')
 const LoginCommand = require('./command/LoginCommand')
-const SetStateCommand = require('./command/SetStateCommand')
+const MockStateSetCommand = require('./command/MockStateSetCommand')
 
 const singletons = {}
 
 class Context {
 
   static getConfigurationService () {
-    return asSingleton('ConfigurationService', new ConfigurationService(fs, CONFIG_PATH, JSON))
+    return asSingleton('ConfigurationService', new ConfigurationService(fs, JSON))
   }
 
   static getLoggingService () {
-    return asSingleton('LoggingService', new LoggingService(console, util, JSON, DEBUG_MESSAGES, DEBUG_MODE, LOG_PATH))
+    return asSingleton('LoggingService', new LoggingService(console, util, JSON, DEBUG_MESSAGES, DEBUG_MODE))
   }
 
   static getErrorService () {
@@ -48,7 +45,7 @@ class Context {
   }
 
   static getMockApi () {
-    return asSingleton('MockApi', new MockApi(axios, API_URL_BASE, Context.getProgressService(), Context.getConfigurationService()))
+    return asSingleton('MockApi', new MockApi(axios, Context.getProgressService(), Context.getConfigurationService()))
   }
 
   static getBrowserService () {
@@ -56,7 +53,7 @@ class Context {
   }
 
   static getMockService () {
-    return asSingleton('MockService', new MockService(Context.getMockApi(), Context.getBrowserService(), inquirer))
+    return asSingleton('MockService', new MockService(Context.getMockApi(), Context.getConfigurationService(), Context.getBrowserService(), inquirer))
   }
 
   static getConfigCommand () {
@@ -67,16 +64,20 @@ class Context {
     return asSingleton('LoginCommand', new LoginCommand(Context.getBrowserService()))
   }
 
-  static getManageCommand () {
-    return asSingleton('ManageCommand', new ManageCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  static getMockManageDefinitionCommand () {
+    return asSingleton('MockManageDefinitionCommand', new MockManageDefinitionCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
   }
 
-  static getGetStateCommand () {
-    return asSingleton('GetStateCommand', new GetStateCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  static getMockManageContractCommand () {
+    return asSingleton('MockManageContractCommand', new MockManageContractCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
   }
 
-  static getSetStateCommand () {
-    return asSingleton('SetStateCommand', new SetStateCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  static getMockStateGetCommand () {
+    return asSingleton('MockStateGetCommand', new MockStateGetCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  }
+
+  static getMockStateSetCommand () {
+    return asSingleton('MockStateSetCommand', new MockStateSetCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
   }
 
   static initialize () {
@@ -85,10 +86,11 @@ class Context {
       .usage('<command> [options]')
       .option('-d, --debug', 'show debug info')
     Context.getConfigCommand().register(program)
-    Context.getManageCommand().register(program)
+    Context.getMockManageDefinitionCommand().register(program)
+    Context.getMockManageContractCommand().register(program)
     Context.getLoginCommand().register(program)
-    Context.getGetStateCommand().register(program)
-    Context.getSetStateCommand().register(program)
+    Context.getMockStateGetCommand().register(program)
+    Context.getMockStateSetCommand().register(program)
     program.parse(process.argv)
   }
 }

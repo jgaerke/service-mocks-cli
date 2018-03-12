@@ -1,4 +1,4 @@
-class SetStateCommand {
+class MockStateGetCommand {
   constructor (mockService, loggingService, errorService) {
     this.mockService = mockService
     this.loggingService = loggingService
@@ -7,10 +7,10 @@ class SetStateCommand {
 
   register (program) {
     program
-      .command('get-state [mock]')
+      .command('mock:state:get [mock] [version]')
       .description('Get mock state')
-      .action((mock) => {
-        this.mockService.getMockState(mock).then((state) => {
+      .action((mock, version) => {
+        this.mockService.getMockState(mock, version).then((state) => {
           this.loggingService.info(state)
         }).catch((err) => {
           this.errorService.handle(err)
@@ -20,7 +20,7 @@ class SetStateCommand {
 }
 
 
-module.exports = SetStateCommand
+module.exports = MockStateGetCommand
 
 
 

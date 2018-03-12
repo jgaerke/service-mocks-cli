@@ -9,10 +9,12 @@ class ConfigCommand {
       .command('config')
       .description('Configure api key')
       .option('-l, --list', 'List configuration settings')
+      .option('-cu, --console-url <value>', 'Console url to use. Default is https://console.servicemocks.com')
+      .option('-au, --api-url <value>', 'API url to use. Default is https://api.servicemocks.com')
       .option('-k, --api-key <value>', 'API key to use')
       .option('-c, --clear [key]', 'Clear config value(s)')
       .action((options) => {
-        const {list, apiKey, clear} = options
+        const {list, consoleUrl, apiUrl, apiKey, clear} = options
         if (list) {
           const config = this.configurationService.get()
           const keys = Object.keys(config)
@@ -22,6 +24,16 @@ class ConfigCommand {
           keys.forEach((key) => {
             this.loggingService.info(`${key}=${config[key]}`)
           })
+          return
+        }
+        if (consoleUrl) {
+          this.configurationService.set({consoleUrl})
+          this.loggingService.success('Successfully set console url!')
+          return
+        }
+        if (apiUrl) {
+          this.configurationService.set({apiUrl})
+          this.loggingService.success('Successfully set api url!')
           return
         }
         if (apiKey) {
