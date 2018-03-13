@@ -4,7 +4,7 @@
   "description": "Command line interface to orchestrate api.servicemocks.com",
   "main": "index.js",
   "preferGlobal": true,
-  "bin": "./bin/SvcMocks.js",
+  "bin": "./bin/svcmocks.js",
   "scripts": {
     "test": "test"
   },
