@@ -23,6 +23,15 @@ class ConfigurationService {
     this.fs.writeFileSync(this.configPath, this.json.stringify(config, null, 2) + '\n')
   }
 
+  clear (key) {
+    let config = {}
+    if (key) {
+      config = this.get()
+      delete config[key]
+    }
+    this.fs.writeFileSync(this.configPath, this.json.stringify(config, null, 2) + '\n')
+  }
+
   list () {
     const table = new Table({
       head: ['Key'.green, 'Value'.green]

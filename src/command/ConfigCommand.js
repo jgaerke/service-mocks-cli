@@ -15,7 +15,7 @@ class ConfigCommand {
       .option('-c, --clear [key]', 'Clear config value(s)')
       .action((options) => {
         const {list, consoleUrl, apiUrl, apiKey, clear} = options
-        if(!list && !consoleUrl && !apiUrl && !apiKey && !clear) {
+        if (!list && !consoleUrl && !apiUrl && !apiKey && !clear) {
           program.help()
         }
         if (list) {
@@ -39,11 +39,9 @@ class ConfigCommand {
         }
         if (clear) {
           if (clear === true) {
-            return this.configurationService.set({})
+            return this.configurationService.clear()
           }
-          const config = this.configurationService.get()
-          delete config[clear]
-          this.configurationService.set(config)
+          this.configurationService.clear(clear)
         }
       })
   }
