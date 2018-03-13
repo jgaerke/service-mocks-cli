@@ -149,7 +149,7 @@ const getConsoleStateOutputForSelectedMock = (thisArg, mock) => {
 
 const parseResources = (mockName, mockVersion, resources) => {
   const table = new Table({
-    head: ['Mock'.green, 'Version'.green, 'Resource'.green, 'Instance'.green, 'State'.green]
+    head: ['Mock'.green, 'Version'.green, 'Resource'.green, 'Instance'.green, 'State'.green, 'Active'.green]
   })
   Object.keys(resources).forEach((resourceName) => {
     parseInstances(mockName, mockVersion, resourceName, resources[resourceName], table)
@@ -164,8 +164,8 @@ const parseInstances = (mockName, mockVersion, resourceName, instances, table) =
 }
 
 const parseStates = (mockName, mockVersion, resourceName, instanceName, states, table) => {
-  states.forEach((stateName) => {
-    table.push([mockName, mockVersion, resourceName, instanceName, stateName])
+  states.forEach((state) => {
+    table.push([mockName, mockVersion, resourceName, instanceName, state.name, state.active])
   })
 }
 

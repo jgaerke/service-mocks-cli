@@ -19,7 +19,7 @@ class ConfigurationService {
   }
 
   set (config) {
-    config = Object.assign({}, this.get(), withNoInvalidData(config))
+    config = Object.assign({}, withNoInvalidData(this.get()), config)
     this.fs.writeFileSync(this.configPath, this.json.stringify(config, null, 2) + '\n')
   }
 
@@ -28,6 +28,7 @@ class ConfigurationService {
       head: ['Key'.green, 'Value'.green]
     })
     const config = this.get()
+    console.log('here')
     Object.keys(config).forEach((key) => {
       table.push([key, config[key]])
     })
