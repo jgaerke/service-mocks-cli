@@ -1,4 +1,4 @@
-class MockManageDefinitionCommand {
+class MockManageCommand {
   constructor (mockService, loggingService, errorService) {
     this.mockService = mockService
     this.loggingService = loggingService
@@ -7,17 +7,17 @@ class MockManageDefinitionCommand {
 
   register (program) {
     program
-      .command('mock:manage:def [name] [version]')
-      .description('Manage mock contract at contract source')
+      .command('mock:manage [name] [version]')
+      .description('Manage mock in console')
       .action((mock, version) => {
-        this.mockService.manageMockDefinition(mock, version).catch((err) => {
+        this.mockService.manageMock(mock, version).catch((err) => {
           this.errorService.handle(err)
         })
       })
   }
 }
 
-module.exports = MockManageDefinitionCommand
+module.exports = MockManageCommand
 
 
 

@@ -14,8 +14,8 @@ class MockService {
   }
 
   getMockList () {
-    if(!this.configurationService.isApiConfigured()) {
-      return Promise.reject({message: `Please run 'config --api-key <api-key>' command and try again`})
+    if (!this.configurationService.isApiConfigured()) {
+      return getApiConfigurationRejection()
     }
     return getMocks(this, 0, 100)
       .then((response) => {
@@ -30,8 +30,8 @@ class MockService {
   }
 
   getMockState (mock, version) {
-    if(!this.configurationService.isApiConfigured()) {
-      return Promise.reject({message: `Please run 'config --api-key <api-key>' command and try again`})
+    if (!this.configurationService.isApiConfigured()) {
+      return getApiConfigurationRejection()
     }
     this.currentState = null
     this.mockByNameAndVersion = null
@@ -48,8 +48,8 @@ class MockService {
   }
 
   setMockState (mock, version, resource, instance, state) {
-    if(!this.configurationService.isApiConfigured()) {
-      return Promise.reject({message: `Please run 'config --api-key <api-key>' command and try again`})
+    if (!this.configurationService.isApiConfigured()) {
+      return getApiConfigurationRejection()
     }
     this.currentState = null
     this.mockByNameAndVersion = null
@@ -57,7 +57,7 @@ class MockService {
     this.selectedResource = resource
     this.selectedInstance = instance
     if (mock && version && resource && instance && state) {
-      return updateState(this, mock, version, {
+      return updateMockState(this, mock, version, {
         [resource]: {
           [instance]: state
         }
@@ -74,7 +74,7 @@ class MockService {
         return getStateSelection(this, states)
       })
       .then(({mock, resource, instance, state}) => {
-        return updateState(this, mock.name, mock.version, {
+        return updateMockState(this, mock.name, mock.version, {
           [resource]: {
             [instance]: state
           }
@@ -82,9 +82,9 @@ class MockService {
       })
   }
 
-  manageMockDefinition (mock, version) {
-    if(!this.configurationService.isApiConfigured()) {
-      return Promise.reject({message: `Please run 'config --api-key <api-key>' command and try again`})
+  manageMock (mock, version) {
+    if (!this.configurationService.isApiConfigured()) {
+      return getApiConfigurationRejection()
     }
     this.mockByNameAndVersion = null
     this.selectedMock = null
@@ -100,8 +100,8 @@ class MockService {
   }
 
   manageMockContract (mock, version) {
-    if(!this.configurationService.isApiConfigured()) {
-      return Promise.reject({message: `Please run 'config --api-key <api-key>' command and try again`})
+    if (!this.configurationService.isApiConfigured()) {
+      return getApiConfigurationRejection()
     }
     this.mockByNameAndVersion = null
     this.selectedMock = null
@@ -115,6 +115,83 @@ class MockService {
         return openContractInSource(this, mock)
       })
   }
+
+  addMockInstance (mock, version, instance) {
+    if (!this.configurationService.isApiConfigured()) {
+      return getApiConfigurationRejection()
+    }
+    this.mockByNameAndVersion = null
+    this.selectedMock = null
+    if (mock && version && instance) {
+      return getMockByNameAndVersion(this, mock, version).then((m) => {
+        return addMockInstanceToState(this, m, instance)
+      })
+    }
+    return getMockSelection(this)
+      .then((mock) => {
+        return getInstanceName(this).then((instance) => {
+          if (!instance) {
+            return Promise.reject({message: 'Instance name required'})
+          }
+          return addMockInstanceToState(this, mock, instance)
+        })
+      })
+  }
+
+  removeMockInstance (mock, version, instance) {
+    if (!this.configurationService.isApiConfigured()) {
+      return getApiConfigurationRejection()
+    }
+    this.mockByNameAndVersion = null
+    this.selectedMock = null
+    if (mock && version && instance) {
+      return getMockByNameAndVersion(this, mock, version).then((m) => {
+        return removeMockInstanceToState(this, m, instance)
+      })
+    }
+    return getMockSelection(this)
+      .then((mock) => {
+        return getInstanceName(this).then((instance) => {
+          if (!instance) {
+            return Promise.reject({message: 'Instance name required'})
+          }
+          return removeMockInstanceToState(this, mock, instance)
+        })
+      })
+  }
+}
+
+const addMockInstanceToState = (thisArg, mock, instance) => {
+  return getMockState(thisArg, mock.id).then((mockState) => {
+    Object.keys(mockState).forEach((resourceKey) => {
+      const defaultState = mock.definition.resources.find((resource) => resource.name === resourceKey).responses[0].name
+      const resourceState = mockState[resourceKey]
+      Object.keys(resourceState).forEach((instanceKey) => {
+        const instanceStates = resourceState[instanceKey]
+        resourceState[instanceKey] = (instanceStates.find((i) => i.active) || instanceStates[0]).name
+      })
+      resourceState[instance] = defaultState
+    })
+    return thisArg.mockApi.patchState(mock.id, mockState)
+  })
+}
+
+const removeMockInstanceToState = (thisArg, mock, instance) => {
+  return getMockState(thisArg, mock.id).then((mockState) => {
+    Object.keys(mockState).forEach((resourceKey) => {
+      const resourceState = mockState[resourceKey]
+      Object.keys(resourceState).forEach((instanceKey) => {
+        const instanceStates = resourceState[instanceKey]
+        resourceState[instanceKey] = (instanceStates.find((i) => i.active) || instanceStates[0]).name
+      })
+      delete resourceState[instance]
+    })
+    return thisArg.mockApi.putState(mock.id, mockState)
+  })
+}
+
+const getApiConfigurationRejection = () => {
+  return Promise.reject({message: `Please run 'config --api-key <api-key>' command and try again`})
 }
 
 const openMockInConsole = (thisArg, mock) => {
@@ -131,8 +208,8 @@ const openContractInSource = (thisArg, mock) => {
   const {
     url
   } = contract
-  if(!url) {
-    return Promise.reject({message:`Contract not defined for mock name: ${mock.name} version: ${mock.version}`})
+  if (!url) {
+    return Promise.reject({message: `Contract not defined for mock name: ${mock.name} version: ${mock.version}`})
   }
   thisArg.browserService.open(url)
   return Promise.resolve()
@@ -169,12 +246,12 @@ const parseStates = (mockName, mockVersion, resourceName, instanceName, states, 
   })
 }
 
-const updateState = (thisArg, mockName, mockVersion, state) => {
+const updateMockState = (thisArg, mockName, mockVersion, state) => {
   return getMockByNameAndVersion(thisArg, mockName, mockVersion).then((mock) => {
     if (!mock) {
       return Promise.reject({message: `Mock not found for name: ${mockName} version: ${mockVersion}`})
     }
-    return thisArg.mockApi.setState(mock.id, state)
+    return thisArg.mockApi.patchState(mock.id, state)
   })
 }
 
@@ -267,6 +344,20 @@ const presentResourceChoices = (thisArg, mock) => {
       thisArg.selectedResource = resource
       return {mock, resource}
     })
+  })
+}
+
+const getInstanceName = (thisArg) => {
+  return presentInstanceNamePrompt(thisArg)
+}
+
+const presentInstanceNamePrompt = (thisArg) => {
+  return thisArg.inquirer.prompt([{
+    type: 'input',
+    name: 'instance',
+    message: 'Enter instance name'
+  }]).then((answers) => {
+    return answers.instance
   })
 }
 

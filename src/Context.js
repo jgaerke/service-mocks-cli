@@ -20,10 +20,11 @@ const MockService = require('./service/MockService')
 
 const ConfigCommand = require('./command/ConfigCommand')
 const MockListCommand = require('./command/MockListCommand')
+const MockInstanceAddCommand = require('./command/MockInstanceAddCommand')
+const MockInstanceRemoveCommand = require('./command/MockInstanceRemoveCommand')
 const MockStateGetCommand = require('./command/MockStateGetCommand')
-const MockManageDefinitionCommand = require('./command/MockManageDefinitionCommand')
-const MockManageContractCommand = require('./command/MockManageContractCommand')
-const LoginCommand = require('./command/LoginCommand')
+const MockManageCommand = require('./command/MockManageCommand')
+const MockContractCommand = require('./command/MockContractCommand')
 const MockStateSetCommand = require('./command/MockStateSetCommand')
 
 const singletons = {}
@@ -62,20 +63,24 @@ class Context {
     return asSingleton('ConfigureCommand', new ConfigCommand(Context.getConfigurationService(), Context.getLoggingService()))
   }
 
-  static getLoginCommand () {
-    return asSingleton('LoginCommand', new LoginCommand(Context.getBrowserService()))
-  }
-
   static getMockListCommand () {
     return asSingleton('MockListCommand', new MockListCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
   }
 
-  static getMockManageDefinitionCommand () {
-    return asSingleton('MockManageDefinitionCommand', new MockManageDefinitionCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  static getMockInstanceAddCommand () {
+    return asSingleton('MockInstanceAddCommand', new MockInstanceAddCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
   }
 
-  static getMockManageContractCommand () {
-    return asSingleton('MockManageContractCommand', new MockManageContractCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  static getMockInstanceRemoveCommand () {
+    return asSingleton('MockInstanceRemoveCommand', new MockInstanceRemoveCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  }
+
+  static getMockManageCommand () {
+    return asSingleton('MockManageCommand', new MockManageCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  }
+
+  static getMockContractCommand () {
+    return asSingleton('MockContractCommand', new MockContractCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
   }
 
   static getMockStateGetCommand () {
@@ -97,9 +102,10 @@ class Context {
       .option('-d, --debug', 'show debug info')
     Context.getConfigCommand().register(program)
     Context.getMockListCommand().register(program)
-    Context.getMockManageDefinitionCommand().register(program)
-    Context.getMockManageContractCommand().register(program)
-    Context.getLoginCommand().register(program)
+    Context.getMockInstanceAddCommand().register(program)
+    Context.getMockInstanceRemoveCommand().register(program)
+    Context.getMockManageCommand().register(program)
+    Context.getMockContractCommand().register(program)
     Context.getMockStateGetCommand().register(program)
     Context.getMockStateSetCommand().register(program)
     program.parse(process.argv)

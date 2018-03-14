@@ -8,7 +8,7 @@ class MockStateGetCommand {
   register (program) {
     program
       .command('mock:state:get [mock] [version]')
-      .description('Get mock state')
+      .description('Display mock state')
       .action((mock, version) => {
         this.mockService.getMockState(mock, version).then((state) => {
           this.loggingService.info(state)

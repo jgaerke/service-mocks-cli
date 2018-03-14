@@ -37,10 +37,17 @@ class MockApi {
     )
   }
 
-  setState (mockId, state) {
+  patchState (mockId, state) {
     return withProgress(
       this,
       this.axios.patch(`${this.apiUrl}/mocks/${mockId}/states`, state, prepareHeaders(this))
+    )
+  }
+
+  putState (mockId, state) {
+    return withProgress(
+      this,
+      this.axios.put(`${this.apiUrl}/mocks/${mockId}/states`, state, prepareHeaders(this))
     )
   }
 }
