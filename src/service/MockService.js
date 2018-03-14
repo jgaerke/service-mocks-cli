@@ -29,21 +29,25 @@ class MockService {
       })
   }
 
-  getMockState (mock, version) {
+  getMockState (mock, version, instance) {
     if (!this.configurationService.isApiConfigured()) {
       return getApiConfigurationRejection()
     }
     this.currentState = null
     this.mockByNameAndVersion = null
     this.selectedMock = {name: mock, version}
-    if (mock && version) {
+    if (mock && version && instance) {
       return getMockByNameAndVersion(this, mock, version).then((m) => {
-        return getConsoleStateOutputForSelectedMock(this, m)
+        return getMockState(this, m.id).then((mockState) => {
+          return getConsoleStateOutputForSelectedMock(this, m, mockState, instance)
+        })
       })
     }
     return getMockSelection(this)
       .then((mock) => {
-        return getConsoleStateOutputForSelectedMock(this, mock)
+        return getMockInstanceSelection(this, mock).then(({mockState, instance}) => {
+          return getConsoleStateOutputForSelectedMock(this, mock, mockState, instance)
+        })
       })
   }
 
@@ -161,6 +165,7 @@ class MockService {
   }
 }
 
+
 const addMockInstanceToState = (thisArg, mock, instance) => {
   return getMockState(thisArg, mock.id).then((mockState) => {
     Object.keys(mockState).forEach((resourceKey) => {
@@ -215,28 +220,56 @@ const openContractInSource = (thisArg, mock) => {
   return Promise.resolve()
 }
 
-const getConsoleStateOutputForSelectedMock = (thisArg, mock) => {
-  if (!mock) {
-    return Promise.reject({message: `Mock not found`})
-  }
-  return thisArg.mockApi.getState(mock.id).then((response) => {
-    return parseResources(mock.name, mock.version, response.data)
+const getMockInstanceSelection = (thisArg, mock) => {
+  return presentMockInstanceChoices(thisArg, mock.id)
+}
+
+const presentMockInstanceChoices = (thisArg, mockId) => {
+  return getMockState(thisArg, mockId).then((mockState) => {
+    const choices = ['all']
+    Object.keys(mockState).forEach((resourceName) => {
+      const resourceState = mockState[resourceName]
+      Object.keys(resourceState).forEach((instanceName) => {
+        if (!choices.includes(instanceName)) {
+          choices.push(instanceName)
+        }
+      })
+    })
+    return thisArg.inquirer.prompt([{
+      type: 'list',
+      name: 'instance',
+      message: 'Select instance',
+      choices,
+    }]).then((answers) => {
+      const {instance} = answers
+      thisArg.selectedInstance = instance
+      return {mockState, instance}
+    })
   })
 }
 
-const parseResources = (mockName, mockVersion, resources) => {
+const getConsoleStateOutputForSelectedMock = (thisArg, mock, mockState, instance) => {
+  if (!mock) {
+    return Promise.reject({message: `Mock not found`})
+  }
+  return parseResources(mock.name, mock.version, mock.definition.resources, mockState, instance)
+}
+
+const parseResources = (mockName, mockVersion, resources, mockState, instance) => {
   const table = new Table({
     head: ['Mock'.green, 'Version'.green, 'Resource'.green, 'Instance'.green, 'State'.green, 'Active'.green]
   })
-  Object.keys(resources).forEach((resourceName) => {
-    parseInstances(mockName, mockVersion, resourceName, resources[resourceName], table)
+  resources.map((resource) => resource.name).forEach((resourceName) => {
+    parseInstances(mockName, mockVersion, resourceName, mockState[resourceName], instance, table)
   })
   return table.toString()
 }
 
-const parseInstances = (mockName, mockVersion, resourceName, instances, table) => {
+const parseInstances = (mockName, mockVersion, resourceName, instances, instance, table) => {
   Object.keys(instances).forEach((instanceName) => {
-    parseStates(mockName, mockVersion, resourceName, instanceName, instances[instanceName], table)
+    if (instance === 'all' || instance === instanceName) {
+      parseStates(mockName, mockVersion, resourceName, instanceName, instances[instanceName], table)
+    }
   })
 }
 
