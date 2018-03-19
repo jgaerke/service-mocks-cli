@@ -8,6 +8,7 @@ class MockService {
     this.inquirer = inquirer
     this.currentState = null
     this.mockByNameAndVersion = null
+    this.activeMock = null
     this.selectedMock = null
     this.selectedResource = null
     this.selectedInstance = null
@@ -29,24 +30,33 @@ class MockService {
       })
   }
 
-  getMockState (mock, version, instance) {
+  getMockState (mock, version, resource, instance) {
     if (!this.configurationService.isApiConfigured()) {
       return getApiConfigurationRejection()
     }
     this.currentState = null
     this.mockByNameAndVersion = null
+    this.activeMock = null
     this.selectedMock = {name: mock, version}
-    if (mock && version && instance) {
+    this.selectedResource = null
+    this.selectedInstance = null
+    if (mock && version && resource && instance) {
       return getMockByNameAndVersion(this, mock, version).then((m) => {
         return getMockState(this, m.id).then((mockState) => {
-          return getConsoleStateOutputForSelectedMock(this, m, mockState, instance)
+          return getConsoleStateOutputForSelectedMock(this, m, mockState, resource, instance)
         })
       })
     }
     return getMockSelection(this)
       .then((mock) => {
-        return getMockInstanceSelection(this, mock).then(({mockState, instance}) => {
-          return getConsoleStateOutputForSelectedMock(this, mock, mockState, instance)
+        return getResourceSelection(this, mock, true)
+      })
+      .then(({mock, resource}) => {
+        return getInstanceSelection(this, mock.id, resource, true)
+      })
+      .then(() => {
+        return getMockState(this, this.activeMock.id).then((mockState) => {
+          return getConsoleStateOutputForSelectedMock(this, this.activeMock, mockState, this.selectedResource, this.selectedInstance)
         })
       })
   }
@@ -57,6 +67,7 @@ class MockService {
     }
     this.currentState = null
     this.mockByNameAndVersion = null
+    this.activeMock = null
     this.selectedMock = null
     this.selectedResource = resource
     this.selectedInstance = instance
@@ -91,6 +102,7 @@ class MockService {
       return getApiConfigurationRejection()
     }
     this.mockByNameAndVersion = null
+    this.activeMock = null
     this.selectedMock = null
     if (mock && version) {
       return getMockByNameAndVersion(this, mock, version).then((mock) => {
@@ -108,6 +120,7 @@ class MockService {
       return getApiConfigurationRejection()
     }
     this.mockByNameAndVersion = null
+    this.activeMock = null
     this.selectedMock = null
     if (mock && version) {
       return getMockByNameAndVersion(this, mock, version).then((mock) => {
@@ -125,6 +138,7 @@ class MockService {
       return getApiConfigurationRejection()
     }
     this.mockByNameAndVersion = null
+    this.activeMock = null
     this.selectedMock = null
     if (mock && version && instance) {
       return getMockByNameAndVersion(this, mock, version).then((m) => {
@@ -147,6 +161,7 @@ class MockService {
       return getApiConfigurationRejection()
     }
     this.mockByNameAndVersion = null
+    this.activeMock = null
     this.selectedMock = null
     if (mock && version && instance) {
       return getMockByNameAndVersion(this, mock, version).then((m) => {
@@ -220,47 +235,21 @@ const openContractInSource = (thisArg, mock) => {
   return Promise.resolve()
 }
 
-const getMockInstanceSelection = (thisArg, mock) => {
-  return presentMockInstanceChoices(thisArg, mock.id)
-}
-
-const presentMockInstanceChoices = (thisArg, mockId) => {
-  return getMockState(thisArg, mockId).then((mockState) => {
-    const choices = ['all']
-    Object.keys(mockState).forEach((resourceName) => {
-      const resourceState = mockState[resourceName]
-      Object.keys(resourceState).forEach((instanceName) => {
-        if (!choices.includes(instanceName)) {
-          choices.push(instanceName)
-        }
-      })
-    })
-    return thisArg.inquirer.prompt([{
-      type: 'list',
-      name: 'instance',
-      message: 'Select instance',
-      choices,
-    }]).then((answers) => {
-      const {instance} = answers
-      thisArg.selectedInstance = instance
-      return {mockState, instance}
-    })
-  })
-}
-
-const getConsoleStateOutputForSelectedMock = (thisArg, mock, mockState, instance) => {
+const getConsoleStateOutputForSelectedMock = (thisArg, mock, mockState, resource, instance) => {
   if (!mock) {
     return Promise.reject({message: `Mock not found`})
   }
-  return parseResources(mock.name, mock.version, mock.definition.resources, mockState, instance)
+  return parseResources(mock.name, mock.version, mock.definition.resources, mockState, resource, instance)
 }
 
-const parseResources = (mockName, mockVersion, resources, mockState, instance) => {
+const parseResources = (mockName, mockVersion, resources, mockState, resource, instance) => {
   const table = new Table({
     head: ['Mock'.green, 'Version'.green, 'Resource'.green, 'Instance'.green, 'State'.green, 'Active'.green]
   })
   resources.map((resource) => resource.name).forEach((resourceName) => {
-    parseInstances(mockName, mockVersion, resourceName, mockState[resourceName], instance, table)
+    if (resource === 'all' || resource === resourceName) {
+      parseInstances(mockName, mockVersion, resourceName, mockState[resourceName], instance, table)
+    }
   })
   return table.toString()
 }
@@ -354,24 +343,26 @@ const presentMockChoices = (thisArg, skip, limit) => {
         return presentMockChoices(thisArg, skip + limit, limit)
       }
       const match = mocks.find((m) => m.id === mock)
+      thisArg.activeMock = match
       thisArg.selectedMock = {name: match.name, version: match.version}
       return match
     })
   })
 }
 
-const getResourceSelection = (thisArg, mock) => {
-  return presentResourceChoices(thisArg, mock)
+const getResourceSelection = (thisArg, mock, includeAllOption = false) => {
+  return presentResourceChoices(thisArg, mock, includeAllOption)
 }
 
-const presentResourceChoices = (thisArg, mock) => {
+const presentResourceChoices = (thisArg, mock, includeAllOption = false) => {
   return getMockState(thisArg, mock.id).then((state) => {
-    const resources = Object.keys(state)
+    const allOption = includeAllOption ? ['all'] : []
+    const choices = allOption.concat(Object.keys(state))
     return thisArg.inquirer.prompt([{
       type: 'list',
       name: 'resource',
       message: 'Select resource',
-      choices: resources,
+      choices,
     }]).then((answers) => {
       const {resource} = answers
       thisArg.selectedResource = resource
@@ -394,14 +385,15 @@ const presentInstanceNamePrompt = (thisArg) => {
   })
 }
 
-const getInstanceSelection = (thisArg, mockId, resource) => {
-  return presentInstanceChoices(thisArg, mockId, resource)
+const getInstanceSelection = (thisArg, mockId, resource, includeAllOption = false) => {
+  return presentInstanceChoices(thisArg, mockId, resource, includeAllOption)
 }
 
-const presentInstanceChoices = (thisArg, mockId, resource) => {
+const presentInstanceChoices = (thisArg, mockId, resource, includeAllOption = false) => {
   return getMockState(thisArg, mockId).then((state) => {
-    const instances = state[resource]
-    const choices = Object.keys(instances)
+    const instances = resource === 'all' ? getDistinctInstancesFromState(state) : Object.keys(state[resource])
+    const allOption = includeAllOption ? ['all'] : []
+    const choices = allOption.concat(instances)
     return thisArg.inquirer.prompt([{
       type: 'list',
       name: 'instance',
@@ -415,6 +407,17 @@ const presentInstanceChoices = (thisArg, mockId, resource) => {
   })
 }
 
+const getDistinctInstancesFromState = (state) => {
+  const instances = []
+  Object.keys(state).forEach((resource) => {
+    Object.keys(state[resource]).forEach((instance) => {
+      if(!instances.includes(instance)) {
+        instances.push(instance)
+      }
+    })
+  })
+  return instances
+}
 
 const getStateSelection = (thisArg, states) => {
   return presentStateChoices(thisArg, states)
