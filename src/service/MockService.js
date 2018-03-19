@@ -402,7 +402,7 @@ const presentInstanceChoices = (thisArg, mockId, resource, includeAllOption = fa
     }]).then((answers) => {
       const {instance} = answers
       thisArg.selectedInstance = instance
-      return instances[instance]
+      return getStatesFromSelectedInstanceState(resource, instance, state)
     })
   })
 }
@@ -417,6 +417,13 @@ const getDistinctInstancesFromState = (state) => {
     })
   })
   return instances
+}
+
+const getStatesFromSelectedInstanceState = (resource, instance, state) => {
+  if(resource === 'all' || state === 'all') {
+    return []
+  }
+  return state[resource][instance]
 }
 
 const getStateSelection = (thisArg, states) => {
