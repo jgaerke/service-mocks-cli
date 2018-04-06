@@ -37,7 +37,6 @@ class ConfigurationService {
       head: ['Key'.green, 'Value'.green]
     })
     const config = this.get()
-    console.log('here')
     Object.keys(config).forEach((key) => {
       table.push([key, config[key]])
     })

@@ -1,7 +1,7 @@
 const Table = require('cli-table')
 
 class MockService {
-  constructor (mockApi, configurationService, browserService, inquirer) {
+  constructor (mockApi, configurationService, browserService, inquirer, json, fs, yaml) {
     this.mockApi = mockApi
     this.configurationService = configurationService
     this.browserService = browserService
@@ -12,6 +12,9 @@ class MockService {
     this.selectedMock = null
     this.selectedResource = null
     this.selectedInstance = null
+    this.json = json
+    this.fs = fs
+    this.yaml = yaml
   }
 
   getMockList () {
@@ -131,6 +134,39 @@ class MockService {
       .then((mock) => {
         return openContractInSource(this, mock)
       })
+  }
+
+  uploadMockContract (file, name, version, url) {
+    if (!this.configurationService.isApiConfigured()) {
+      return getApiConfigurationRejection()
+    }
+    if (!file) {
+      return Promise.reject({message: 'File path required. e.g. `./swagger.yaml` or `./swagger.json`'})
+    }
+    if (!this.fs.existsSync(file)) {
+      return Promise.reject({message: `Couldn't find file: ${file}`})
+    }
+    try {
+      const upload = {}
+      if (name) {
+        upload.name = name
+      }
+      if (version) {
+        upload.version = version
+      }
+      if (url) {
+        upload.url = url
+      }
+      const content = this.fs.readFileSync(file).toString()
+      if (content.startsWith('{')) {
+        upload.contract = this.json.parse(content)
+      } else {
+        upload.contract = this.yaml.safeLoad(content)
+      }
+      return this.mockApi.uploadSwaggerContract(upload)
+    } catch (e) {
+      return Promise.reject(e)
+    }
   }
 
   addMockInstance (mock, version, instance) {
@@ -411,7 +447,7 @@ const getDistinctInstancesFromState = (state) => {
   const instances = []
   Object.keys(state).forEach((resource) => {
     Object.keys(state[resource]).forEach((instance) => {
-      if(!instances.includes(instance)) {
+      if (!instances.includes(instance)) {
         instances.push(instance)
       }
     })
@@ -420,7 +456,7 @@ const getDistinctInstancesFromState = (state) => {
 }
 
 const getStatesFromSelectedInstanceState = (resource, instance, state) => {
-  if(resource === 'all' || state === 'all') {
+  if (resource === 'all' || state === 'all') {
     return []
   }
   return state[resource][instance]

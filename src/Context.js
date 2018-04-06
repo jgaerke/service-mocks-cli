@@ -1,4 +1,5 @@
 const fs = require('fs')
+const yaml = require('js-yaml')
 const util = require('util')
 const inquirer = require('inquirer')
 const program = require('commander')
@@ -26,6 +27,7 @@ const MockStateGetCommand = require('./command/MockStateGetCommand')
 const MockManageCommand = require('./command/MockManageCommand')
 const MockContractCommand = require('./command/MockContractCommand')
 const MockStateSetCommand = require('./command/MockStateSetCommand')
+const MockContractUploadCommand = require('./command/MockContractUploadCommand')
 
 const singletons = {}
 
@@ -56,7 +58,7 @@ class Context {
   }
 
   static getMockService () {
-    return asSingleton('MockService', new MockService(Context.getMockApi(), Context.getConfigurationService(), Context.getBrowserService(), inquirer))
+    return asSingleton('MockService', new MockService(Context.getMockApi(), Context.getConfigurationService(), Context.getBrowserService(), inquirer, JSON, fs, yaml))
   }
 
   static getConfigCommand () {
@@ -91,6 +93,10 @@ class Context {
     return asSingleton('MockStateSetCommand', new MockStateSetCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
   }
 
+  static getMockContractUploadCommand () {
+    return asSingleton('MockContractUploadComment', new MockContractUploadCommand(Context.getMockService(), Context.getLoggingService(), Context.getErrorService()))
+  }
+
   static initialize () {
     const notifier = updateNotifier({
       pkg: packageJson,
@@ -105,6 +111,7 @@ class Context {
     Context.getMockListCommand().register(program)
     Context.getMockManageCommand().register(program)
     Context.getMockContractCommand().register(program)
+    Context.getMockContractUploadCommand().register(program)
     Context.getMockInstanceAddCommand().register(program)
     Context.getMockInstanceRemoveCommand().register(program)
     Context.getMockStateGetCommand().register(program)

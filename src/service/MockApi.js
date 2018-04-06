@@ -23,6 +23,13 @@ class MockApi {
     )
   }
 
+  uploadSwaggerContract (upload) {
+    return withProgress(
+      this,
+      this.axios.post(`${this.apiUrl}/mocks/upload/swagger-contract`, upload, prepareHeaders(this))
+    )
+  }
+
   getByNameAndVersion (name, version) {
     return withProgress(
       this,

@@ -1,6 +1,6 @@
 {
   "name": "svcmocks",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "Command line interface to orchestrate api.servicemocks.com",
   "main": "index.js",
   "preferGlobal": true,
@@ -30,6 +30,7 @@
     "colors": "1.1.2",
     "commander": "2.14.1",
     "inquirer": "5.1.0",
+    "js-yaml": "3.10.0",
     "lodash": "4.17.5",
     "opn": "5.2.0",
     "update-notifier": "2.3.0"
