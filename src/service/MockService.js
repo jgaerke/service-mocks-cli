@@ -356,7 +356,8 @@ const presentMockChoices = (thisArg, skip, limit) => {
     const {
       totalCount = 0
     } = metadata
-    if ((skip + 1) * limit < totalCount) {
+
+    if (skip + mocks.length < totalCount) {
       choices = choices.concat([
         {
           name: 'next ...',
