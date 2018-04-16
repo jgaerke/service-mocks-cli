@@ -17,11 +17,11 @@ class MockService {
     this.yaml = yaml
   }
 
-  getMockList () {
+  getMockList (skip, limit) {
     if (!this.configurationService.isApiConfigured()) {
       return getApiConfigurationRejection()
     }
-    return getMocks(this, 0, 100)
+    return getMocks(this, parseInt(skip), parseInt(limit))
       .then((response) => {
         const table = new Table({
           head: ['Mock'.green, 'Version'.green, 'Account'.green, 'URL'.green]

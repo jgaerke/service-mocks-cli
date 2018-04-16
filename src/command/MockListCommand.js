@@ -9,8 +9,14 @@ class MockListCommand {
     program
       .command('mock:list')
       .description('List mocks')
-      .action(() => {
-        this.mockService.getMockList().then((mockList) => {
+      .option('-s, --skip <value>', 'Zero based index position to start with')
+      .option('-l, --limit <value>', 'Number of results to limit to')
+      .action((options) => {
+        const {
+          skip = '0',
+          limit = '10'
+        } = options
+        this.mockService.getMockList(skip, limit).then((mockList) => {
           this.loggingService.info(mockList)
         }).catch((err) => {
           this.errorService.handle(err)
