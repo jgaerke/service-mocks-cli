@@ -7,7 +7,7 @@ class ConfigCommand {
   register (program) {
     program
       .command('config')
-      .description('Set configuration options')
+      .description('Set CLI configuration options')
       .option('-l, --list', 'List configuration settings')
       .option('-cu, --console-url <value>', 'Console url to use. Default is https://console.servicemocks.com')
       .option('-au, --api-url <value>', 'API url to use. Default is https://api.servicemocks.com')
