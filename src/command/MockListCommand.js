@@ -14,7 +14,7 @@ class MockListCommand {
       .action((options) => {
         const {
           skip = '0',
-          limit = '10'
+          limit = '25'
         } = options
         this.mockService.getMockList(skip, limit).then((mockList) => {
           this.loggingService.info(mockList)

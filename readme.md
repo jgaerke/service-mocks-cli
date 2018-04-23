@@ -7,19 +7,24 @@ This CLI will give you options to manage your mocks published to servicemocks.co
     npm install -g svcmocks
 
 ## Usage   
+  Usage: svcmocks <command> [options]
 
-    Usage: svcmocks \[options\] \[command\]
-    
-    Options:  
-    -V, --version  output the version number  
+
+  Options:
+
+    -V, --version  output the version number
+    -d, --debug    show debug info
     -h, --help     output usage information
 
-	Commands:  
-  
-	config <api-key>  Configure api key for use in CLI calls.  
-	list [options] <collection> List users, accounts, or mocks  
-	get [options] <collection> <id> Get user, account, or mock  
-	create [options] <collection> <file> Create user, account, or mock  
-	update [options] <collection> <file> Update user, account, or mock  
-	delete [options] <collection> <id> Delete user, account, or mock by id  
-	set-state [options] [mockId\] [resource\] [instance] [state] Update mock resource/instance state
+
+  Commands:
+
+    config [options]                                               Set configuration options
+    mock:list [options]                                            List mocks
+    mock:manage [name] [version]                                   Manage mock in console
+    mock:contract [name] [version]                                 View mock contract
+    mock:contract:upload [options] <file>                          Upload mock contract
+    mock:instance:add [mock] [version] [instance]                  Add instance to mock
+    mock:instance:remove [mock] [version] [instance]               Remove instance from mock
+    mock:state:get [mock] [version] [resource] [instance]          Display mock state
+    mock:state:set [mock] [version] [resource] [instance] [state]  Set mock state
